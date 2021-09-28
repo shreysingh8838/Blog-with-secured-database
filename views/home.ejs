@@ -1,0 +1,17 @@
+<%- include("partials/header"); -%>
+
+    <p class="para text-center"><%= startingContent %></p>
+
+
+  <%  posts.forEach(function(post){ %>
+
+    <h2><%=post.title%></h2>
+    <p>
+    <%=post.content + "..."%>
+    <br><br>
+    <a href="/posts/<%=post._id%>"><button class="btn btn-sm btn-info">Read More</button></a>
+    </p>
+    <% }) %>
+
+
+<%- include("partials/footer"); -%>

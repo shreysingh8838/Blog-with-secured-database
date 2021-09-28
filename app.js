@@ -1,0 +1,108 @@
+//jshint esversion:6
+const express = require("express");
+const bodyParser = require("body-parser");
+const ejs = require("ejs");
+const mongoose = require('mongoose');
+
+const app = express();
+
+//view engine
+app.set('view engine', 'ejs');
+
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.static("public"));
+
+const homeStartingContent = "Your Feed:";
+const aboutContent = "Our Values: ";
+const helpContent = "Common questions: ";
+
+
+mongoose.connect("mongodb://localhost:27017/blogDB", {useNewUrlParser: true});
+
+const postSchema = {
+  title: String,
+  content: String
+};
+const userSchema = {
+  name : String,
+  email : String,   
+  password : String
+};
+
+const User = mongoose.model('User', userSchema);
+
+const Post = mongoose.model("Post", postSchema);
+
+//ROUTES
+
+// MAIN ROUTE
+app.get("/", function(req, res){
+
+  Post.find({}, function(err, posts){
+    res.render("home", {
+      startingContent: homeStartingContent,
+      posts: posts
+      });
+  });
+});
+
+//user route
+app.get("/login",function(req,res){
+  res.render("login");
+});
+app.post("/login",function(req,res){
+  const user = new User({
+    name : req.body.name,
+    email : req.body.email,   
+    password : req.body.password
+  });
+  user.save(function(err){
+    if (!err){
+        res.redirect("/");
+    }
+  });
+});
+
+// COMPOSE ROUTE
+app.get("/compose", function(req, res){
+  res.render("compose");
+});
+
+app.post("/compose", function(req, res){
+  const post = new Post({
+    title: req.body.postTitle,
+    content: req.body.postBody
+  });
+
+  post.save(function(err){
+    if (!err){
+        res.redirect("/");
+    }
+  });
+});
+
+//POST ROUTE
+app.get("/posts/:postId", function(req, res){
+
+  const requestedPostId = req.params.postId;
+
+  Post.findOne({_id: requestedPostId}, function(err, post){
+    res.render("post", {
+      title: post.title,
+      content: post.content
+    });
+  });
+});
+
+app.get("/about", function(req, res){
+  res.render("about", {aboutContent: aboutContent});
+});
+
+app.get("/help", function(req, res){
+  res.render("help", {helpContent: helpContent});
+});
+
+
+app.listen(3000, function() {
+  console.log("Server started on port 3000");
+});
